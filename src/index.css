@@ -1,0 +1,394 @@
+@import "tailwindcss";
+
+/* ===== Custom Design Tokens ===== */
+:root {
+  --rf-bg-primary: #0a0e1a;
+  --rf-bg-secondary: #111827;
+  --rf-bg-card: #1a2035;
+  --rf-bg-elevated: #1e2642;
+  --rf-border: #2a3456;
+  --rf-border-hover: #3d4f7a;
+  --rf-text-primary: #f0f4ff;
+  --rf-text-secondary: #94a3c8;
+  --rf-text-muted: #5e6e96;
+  --rf-accent: #6366f1;
+  --rf-accent-hover: #818cf8;
+  --rf-accent-glow: rgba(99, 102, 241, 0.25);
+  --rf-success: #22c55e;
+  --rf-success-bg: rgba(34, 197, 94, 0.1);
+  --rf-warning: #f59e0b;
+  --rf-danger: #ef4444;
+  --rf-danger-bg: rgba(239, 68, 68, 0.1);
+  --rf-gradient-start: #6366f1;
+  --rf-gradient-end: #a855f7;
+}
+
+/* ===== Base Resets ===== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--rf-bg-primary);
+  color: var(--rf-text-primary);
+  min-height: 100vh;
+}
+
+/* ===== Scrollbar ===== */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--rf-bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--rf-border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--rf-border-hover);
+}
+
+/* ===== Animations ===== */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 var(--rf-accent-glow);
+  }
+  50% {
+    box-shadow: 0 0 0 8px transparent;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s ease-out both;
+}
+
+.animate-slide-in {
+  animation: slide-in 0.3s ease-out both;
+}
+
+/* ===== Gradient Text ===== */
+.gradient-text {
+  background: linear-gradient(135deg, var(--rf-gradient-start), var(--rf-gradient-end));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ===== Glass Card ===== */
+.glass-card {
+  background: rgba(26, 32, 53, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--rf-border);
+  border-radius: 16px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.glass-card:hover {
+  border-color: var(--rf-border-hover);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* ===== Drop Zone ===== */
+.drop-zone {
+  border: 2px dashed var(--rf-border);
+  border-radius: 16px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.drop-zone::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(99, 102, 241, 0.03),
+    rgba(168, 85, 247, 0.03)
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.drop-zone:hover::before,
+.drop-zone.drag-over::before {
+  opacity: 1;
+}
+
+.drop-zone:hover,
+.drop-zone.drag-over {
+  border-color: var(--rf-accent);
+  box-shadow: 0 0 0 4px var(--rf-accent-glow);
+}
+
+.drop-zone.drag-over {
+  transform: scale(1.005);
+}
+
+/* ===== Button Base ===== */
+.btn-primary {
+  background: linear-gradient(135deg, var(--rf-gradient-start), var(--rf-gradient-end));
+  color: white;
+  font-weight: 600;
+  padding: 10px 24px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.btn-primary:hover::before {
+  opacity: 1;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px var(--rf-accent-glow);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-secondary {
+  background: var(--rf-bg-elevated);
+  color: var(--rf-text-primary);
+  font-weight: 500;
+  padding: 10px 24px;
+  border-radius: 10px;
+  border: 1px solid var(--rf-border);
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  border-color: var(--rf-border-hover);
+  background: var(--rf-bg-card);
+  transform: translateY(-1px);
+}
+
+.btn-danger {
+  background: var(--rf-danger-bg);
+  color: var(--rf-danger);
+  font-weight: 500;
+  padding: 10px 24px;
+  border-radius: 10px;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.btn-danger:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: var(--rf-danger);
+}
+
+.btn-icon {
+  background: transparent;
+  color: var(--rf-text-muted);
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-icon:hover {
+  background: var(--rf-bg-elevated);
+  color: var(--rf-text-primary);
+}
+
+/* ===== Table ===== */
+.rf-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.rf-table th {
+  background: var(--rf-bg-secondary);
+  color: var(--rf-text-secondary);
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--rf-border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.rf-table th:first-child {
+  border-top-left-radius: 12px;
+}
+
+.rf-table th:last-child {
+  border-top-right-radius: 12px;
+}
+
+.rf-table td {
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(42, 52, 86, 0.5);
+  vertical-align: middle;
+  font-size: 14px;
+}
+
+.rf-table tr {
+  transition: background 0.15s ease;
+}
+
+.rf-table tbody tr:hover {
+  background: rgba(99, 102, 241, 0.04);
+}
+
+/* ===== Input ===== */
+.rf-input {
+  background: var(--rf-bg-secondary);
+  border: 1px solid var(--rf-border);
+  color: var(--rf-text-primary);
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.rf-input:focus {
+  outline: none;
+  border-color: var(--rf-accent);
+  box-shadow: 0 0 0 3px var(--rf-accent-glow);
+}
+
+.rf-input::placeholder {
+  color: var(--rf-text-muted);
+}
+
+/* ===== Progress Bar ===== */
+.progress-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--rf-bg-secondary);
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--rf-gradient-start), var(--rf-gradient-end));
+  transition: width 0.3s ease;
+  background-size: 200% 100%;
+  animation: shimmer 2s linear infinite;
+}
+
+/* ===== Tag/Badge ===== */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.badge-success {
+  background: var(--rf-success-bg);
+  color: var(--rf-success);
+}
+
+.badge-accent {
+  background: var(--rf-accent-glow);
+  color: var(--rf-accent-hover);
+}
+
+/* ===== Thumbnail ===== */
+.thumbnail {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid var(--rf-border);
+  flex-shrink: 0;
+}
+
+/* ===== Tooltip ===== */
+.result-filename {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 13px;
+  color: var(--rf-success);
+  word-break: break-all;
+}
