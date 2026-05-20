@@ -299,12 +299,16 @@ function App() {
 
       {/* Footer */}
       <footer className="border-t border-[var(--rf-border)] mt-auto">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <p className="text-xs text-[var(--rf-text-muted)]">
+        <div className="max-w-7xl mx-auto px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <p className="text-xs text-[var(--rf-text-muted)] text-center sm:text-left">
             RenameFlow — Fully client-side. No data leaves your browser.
           </p>
-          <p className="text-xs text-[var(--rf-text-muted)]">
-            Built with React + TypeScript
+          <p className="text-xs text-[var(--rf-text-secondary)] font-medium text-center sm:text-right flex items-center gap-1.5">
+            <span>Developed by</span>
+            <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent font-bold tracking-wide uppercase">
+              DEV GHILDIYAL
+            </span>
+            <span className="text-[var(--rf-text-muted)]">| Built with React & Tailwind</span>
           </p>
         </div>
       </footer>

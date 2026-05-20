@@ -1,6 +1,7 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import type { ImageFile, NamingColumn } from '../types';
 import { formatFileSize } from '../utils';
+import PreviewModal from './PreviewModal';
 
 interface ImageTableProps {
   images: ImageFile[];
@@ -17,6 +18,8 @@ const ImageTable: React.FC<ImageTableProps> = ({
   onRemoveImage,
   onBulkFillColumn,
 }) => {
+  const [previewImage, setPreviewImage] = useState<ImageFile | null>(null);
+
   // Memoize rendered rows for performance with 100+ images
   const rows = useMemo(() => images, [images]);
 
@@ -29,6 +32,10 @@ const ImageTable: React.FC<ImageTableProps> = ({
     },
     [onBulkFillColumn]
   );
+
+  const handleClosePreview = useCallback(() => {
+    setPreviewImage(null);
+  }, []);
 
   if (images.length === 0) return null;
 
@@ -90,11 +97,15 @@ const ImageTable: React.FC<ImageTableProps> = ({
                 columns={columns}
                 onUpdateColumnValue={onUpdateColumnValue}
                 onRemoveImage={onRemoveImage}
+                onPreviewImage={setPreviewImage}
               />
             ))}
           </tbody>
         </table>
       </div>
+
+      {/* Large Image Preview Modal */}
+      <PreviewModal image={previewImage} onClose={handleClosePreview} />
     </div>
   );
 };
@@ -106,22 +117,36 @@ interface ImageRowProps {
   columns: NamingColumn[];
   onUpdateColumnValue: (imageId: string, columnId: string, value: string) => void;
   onRemoveImage: (imageId: string) => void;
+  onPreviewImage: (image: ImageFile) => void;
 }
 
 const ImageRow: React.FC<ImageRowProps> = React.memo(
-  ({ image, index, columns, onUpdateColumnValue, onRemoveImage }) => {
+  ({ image, index, columns, onUpdateColumnValue, onRemoveImage, onPreviewImage }) => {
     return (
       <tr id={`row-${image.id}`}>
-        <td className="text-[var(--rf-text-muted)] text-sm font-mono">
+        <td className="text-[var(--rf-text-muted)] text-sm font-mono select-none">
           {index + 1}
         </td>
         <td>
-          <img
-            src={image.previewUrl}
-            alt={image.originalName}
-            className="thumbnail"
-            loading="lazy"
-          />
+          <div
+            className="relative group w-12 h-12 cursor-pointer rounded-lg overflow-hidden border border-[var(--rf-border)] hover:border-[var(--rf-accent)] hover:shadow-md hover:shadow-indigo-500/10 transition-all duration-200"
+            onClick={() => onPreviewImage(image)}
+            title="Click to view large preview"
+            id={`thumbnail-${image.id}`}
+          >
+            <img
+              src={image.previewUrl}
+              alt={image.originalName}
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              loading="lazy"
+            />
+            {/* Interactive hover overlay with search icon */}
+            <div className="absolute inset-0 bg-black/45 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              <svg className="w-4 h-4 text-white drop-shadow-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
+              </svg>
+            </div>
+          </div>
         </td>
         <td>
           <div className="flex flex-col">
