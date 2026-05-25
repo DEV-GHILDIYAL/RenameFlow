@@ -18,6 +18,7 @@ import ProcessingBar from './components/ProcessingBar';
 function App() {
   const [images, setImages] = useState<ImageFile[]>([]);
   const [columns, setColumns] = useState<NamingColumn[]>([]);
+  const [sameClientName, setSameClientName] = useState(false);
   const [processing, setProcessing] = useState<ProcessingState>({
     isProcessing: false,
     completed: 0,
@@ -29,6 +30,17 @@ function App() {
   const convertedBlobsRef = useRef<Map<string, { blob: Blob; filename: string }>>(
     new Map()
   );
+
+  // Helper to find column ID of "Client Name" (case-insensitive)
+  const getClientNameColumnId = useCallback((cols: NamingColumn[]): string | null => {
+    return (
+      cols.find(
+        (col) =>
+          col.name.trim().toLowerCase() === 'client name' ||
+          col.name.trim().toLowerCase() === 'clientname'
+      )?.id || null
+    );
+  }, []);
 
   // ===== Compute result filenames reactively =====
   const computeResultFilenames = useCallback(
@@ -65,11 +77,21 @@ function App() {
       }));
 
       setImages((prev) => {
-        const merged = [...prev, ...newImages];
+        let merged = [...prev, ...newImages];
+        if (sameClientName) {
+          const clientColId = getClientNameColumnId(columns);
+          if (clientColId) {
+            const firstVal = merged[0]?.columnValues[clientColId] || '';
+            merged = merged.map((img) => ({
+              ...img,
+              columnValues: { ...img.columnValues, [clientColId]: firstVal },
+            }));
+          }
+        }
         return computeResultFilenames(merged, columns);
       });
     },
-    [columns, computeResultFilenames]
+    [columns, sameClientName, getClientNameColumnId, computeResultFilenames]
   );
 
   // ===== Column Management =====
@@ -86,9 +108,44 @@ function App() {
     [computeResultFilenames]
   );
 
+  const handleToggleSameClientName = useCallback((enabled: boolean) => {
+    setSameClientName(enabled);
+    if (enabled) {
+      setColumns((prevCols) => {
+        let clientColId = getClientNameColumnId(prevCols);
+        let updatedCols = [...prevCols];
+        if (!clientColId) {
+          // Proactively add "Client Name" column if not present
+          const newColId = generateId();
+          const newCol: NamingColumn = { id: newColId, name: 'Client Name' };
+          updatedCols.push(newCol);
+          clientColId = newColId;
+        }
+
+        const finalColId = clientColId;
+        // Sync values from the first file (if present) to all other files
+        setImages((prevImgs) => {
+          if (prevImgs.length === 0) return prevImgs;
+          const firstVal = prevImgs[0].columnValues[finalColId] || '';
+          const syncedImgs = prevImgs.map((img) => ({
+            ...img,
+            columnValues: { ...img.columnValues, [finalColId]: firstVal },
+          }));
+          return computeResultFilenames(syncedImgs, updatedCols);
+        });
+
+        return updatedCols;
+      });
+    }
+  }, [getClientNameColumnId, computeResultFilenames]);
+
   const handleRemoveColumn = useCallback(
     (id: string) => {
       setColumns((prev) => {
+        const targetCol = prev.find((c) => c.id === id);
+        if (targetCol && (targetCol.name.trim().toLowerCase() === 'client name' || targetCol.name.trim().toLowerCase() === 'clientname')) {
+          setSameClientName(false);
+        }
         const updated = prev.filter((c) => c.id !== id);
         setImages((imgs) => {
           // Clean column values and recompute
@@ -115,18 +172,31 @@ function App() {
   const handleUpdateColumnValue = useCallback(
     (imageId: string, columnId: string, value: string) => {
       setImages((prev) => {
-        const updated = prev.map((img) =>
-          img.id === imageId
-            ? {
-                ...img,
-                columnValues: { ...img.columnValues, [columnId]: value },
-              }
-            : img
-        );
+        const clientColId = getClientNameColumnId(columns);
+        const isClientCol = columnId === clientColId;
+
+        let updated;
+        if (sameClientName && isClientCol) {
+          // Sync all rows with this value
+          updated = prev.map((img) => ({
+            ...img,
+            columnValues: { ...img.columnValues, [columnId]: value },
+          }));
+        } else {
+          // Regular single-row update
+          updated = prev.map((img) =>
+            img.id === imageId
+              ? {
+                  ...img,
+                  columnValues: { ...img.columnValues, [columnId]: value },
+                }
+              : img
+          );
+        }
         return computeResultFilenames(updated, columns);
       });
     },
-    [columns, computeResultFilenames]
+    [columns, sameClientName, getClientNameColumnId, computeResultFilenames]
   );
 
   const handleBulkFillColumn = useCallback(
@@ -269,6 +339,8 @@ function App() {
               onAddColumn={handleAddColumn}
               onRemoveColumn={handleRemoveColumn}
               onRenameColumn={handleRenameColumn}
+              sameClientName={sameClientName}
+              onToggleSameClientName={handleToggleSameClientName}
             />
           )}
 
@@ -279,6 +351,8 @@ function App() {
             onUpdateColumnValue={handleUpdateColumnValue}
             onRemoveImage={handleRemoveImage}
             onBulkFillColumn={handleBulkFillColumn}
+            sameClientName={sameClientName}
+            clientNameColumnId={getClientNameColumnId(columns)}
           />
 
           {/* Processing Bar */}

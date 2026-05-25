@@ -6,6 +6,8 @@ interface ColumnManagerProps {
   onAddColumn: (name: string) => void;
   onRemoveColumn: (id: string) => void;
   onRenameColumn: (id: string, newName: string) => void;
+  sameClientName: boolean;
+  onToggleSameClientName: (enabled: boolean) => void;
 }
 
 const ColumnManager: React.FC<ColumnManagerProps> = ({
@@ -13,6 +15,8 @@ const ColumnManager: React.FC<ColumnManagerProps> = ({
   onAddColumn,
   onRemoveColumn,
   onRenameColumn,
+  sameClientName,
+  onToggleSameClientName,
 }) => {
   const [newColumnName, setNewColumnName] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -100,6 +104,29 @@ const ColumnManager: React.FC<ColumnManagerProps> = ({
             </button>
           </div>
         ))}
+      </div>
+
+      {/* Sync Client Name Toggle */}
+      <div className="flex items-center gap-3 mb-4 bg-[var(--rf-bg-secondary)] border border-[var(--rf-border)] rounded-xl p-3 transition-colors hover:border-[var(--rf-border-hover)]">
+        <label className="flex items-center gap-3 cursor-pointer select-none">
+          <div className="relative">
+            <input
+              type="checkbox"
+              className="sr-only"
+              checked={sameClientName}
+              onChange={(e) => onToggleSameClientName(e.target.checked)}
+              id="same-client-toggle"
+            />
+            <div className={`w-10 h-6 rounded-full transition-colors duration-200 ${sameClientName ? 'bg-[var(--rf-accent)]' : 'bg-[var(--rf-bg-elevated)] border border-[var(--rf-border)]'}`} />
+            <div className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform duration-200 ${sameClientName ? 'transform translate-x-4' : ''}`} />
+          </div>
+          <span className="text-sm font-medium text-[var(--rf-text-primary)]">
+            Use same Client Name for all files
+          </span>
+        </label>
+        <span className="text-xs text-[var(--rf-text-muted)] italic">
+          (Only editable on the first file)
+        </span>
       </div>
 
       {/* Add new column */}

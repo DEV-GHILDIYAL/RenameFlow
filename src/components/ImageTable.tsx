@@ -9,6 +9,8 @@ interface ImageTableProps {
   onUpdateColumnValue: (imageId: string, columnId: string, value: string) => void;
   onRemoveImage: (imageId: string) => void;
   onBulkFillColumn: (columnId: string, value: string) => void;
+  sameClientName: boolean;
+  clientNameColumnId: string | null;
 }
 
 const ImageTable: React.FC<ImageTableProps> = ({
@@ -17,6 +19,8 @@ const ImageTable: React.FC<ImageTableProps> = ({
   onUpdateColumnValue,
   onRemoveImage,
   onBulkFillColumn,
+  sameClientName,
+  clientNameColumnId,
 }) => {
   const [previewImage, setPreviewImage] = useState<ImageFile | null>(null);
 
@@ -98,6 +102,8 @@ const ImageTable: React.FC<ImageTableProps> = ({
                 onUpdateColumnValue={onUpdateColumnValue}
                 onRemoveImage={onRemoveImage}
                 onPreviewImage={setPreviewImage}
+                sameClientName={sameClientName}
+                clientNameColumnId={clientNameColumnId}
               />
             ))}
           </tbody>
@@ -118,10 +124,21 @@ interface ImageRowProps {
   onUpdateColumnValue: (imageId: string, columnId: string, value: string) => void;
   onRemoveImage: (imageId: string) => void;
   onPreviewImage: (image: ImageFile) => void;
+  sameClientName: boolean;
+  clientNameColumnId: string | null;
 }
 
 const ImageRow: React.FC<ImageRowProps> = React.memo(
-  ({ image, index, columns, onUpdateColumnValue, onRemoveImage, onPreviewImage }) => {
+  ({
+    image,
+    index,
+    columns,
+    onUpdateColumnValue,
+    onRemoveImage,
+    onPreviewImage,
+    sameClientName,
+    clientNameColumnId,
+  }) => {
     return (
       <tr id={`row-${image.id}`}>
         <td className="text-[var(--rf-text-muted)] text-sm font-mono select-none">
@@ -158,19 +175,41 @@ const ImageRow: React.FC<ImageRowProps> = React.memo(
             </span>
           </div>
         </td>
-        {columns.map((col) => (
-          <td key={col.id}>
-            <input
-              className="rf-input"
-              placeholder={col.name}
-              value={image.columnValues[col.id] || ''}
-              onChange={(e) =>
-                onUpdateColumnValue(image.id, col.id, e.target.value)
-              }
-              id={`cell-${image.id}-${col.id}`}
-            />
-          </td>
-        ))}
+        {columns.map((col) => {
+          const isClientCol = col.id === clientNameColumnId;
+          const isSyncDisabled = sameClientName && isClientCol && index > 0;
+
+          return (
+            <td key={col.id}>
+              {isSyncDisabled ? (
+                <div className="relative flex items-center" title="Synced with row 1 (Lock active)">
+                  <input
+                    className="rf-input !pr-8 opacity-60 cursor-not-allowed bg-[var(--rf-bg-primary)]/50"
+                    placeholder="Synced with row 1"
+                    value={image.columnValues[col.id] || ''}
+                    disabled={true}
+                    id={`cell-${image.id}-${col.id}`}
+                  />
+                  <span className="absolute right-2.5 text-[var(--rf-text-muted)]">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                  </span>
+                </div>
+              ) : (
+                <input
+                  className="rf-input"
+                  placeholder={col.name}
+                  value={image.columnValues[col.id] || ''}
+                  onChange={(e) =>
+                    onUpdateColumnValue(image.id, col.id, e.target.value)
+                  }
+                  id={`cell-${image.id}-${col.id}`}
+                />
+              )}
+            </td>
+          );
+        })}
         <td>
           {image.resultFilename ? (
             <span className="result-filename">{image.resultFilename}</span>
